@@ -86,6 +86,7 @@
 	}
 
 	//清空棋盘
+	//游戏结束了清空棋盘重新游戏
 	function emptyBoard(){
 		let cells = document.getElementById('board').children;
 		for(let i=0 ;i<cells.length; i++){
@@ -106,7 +107,7 @@
 		if(check(pattern, color)){
 			alert(color == 2 ? "恭喜❌ ，获得了胜利!" : "恭喜⭕️ ，获取了胜利！");
 		}
-		color = 3 - color;
+		color = 3 - color;//让棋子的颜色在1，2间转变
 		show();
 	}
 
@@ -180,6 +181,7 @@
 	}
 
 	//选择一个最好的位置落子
+	//返回值：point最好的落子位置；result输赢结果 1：赢   -1：输   0：和
 	function bestChoice(pattern, color) {
 		let point = willWin(pattern, color);
 		if(p = willWin(pattern, color)){
@@ -190,6 +192,7 @@
 		}
 		let result = -1;
 		
+		//循环查找最优落子点
 		outer:for(let i = 0; i < 3; i++){
 			for(let j = 0; j < 3; j++){
 				if(pattern[i * 3 + j] !== 0)
@@ -214,6 +217,5 @@
 	}
 
 	show(pattern);
-	console.log(bestChoice(pattern, color));
 </script>
 </html>
