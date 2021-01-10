@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>expression</title>
+        <style>
+           
+        </style>
+    </head>
+    <body>
+        
+    </body>
+    <script>
+        //用或分隔开，每次匹配一个分支（数字）（空格\t）（换行符\r \n）(加减乘除)
+        //圆括号里面内容表示捕获，圆括号里面的内容也会被匹配出来
+        var regexp = /([0-9\.]+)|([ \t]+)|([\r\n]+)|(\*)|(\/)|(\+)|(\-)/g;
+        
+        var dictionary = ["Number", "Whitespace", "LineTerminator", "*","/","+","-"];
+
+        function* tokenize(source){
+            var result = null;
+            var lastIndex = 0;
+            while(true){
+                //存储在整个字符串中下一次检索的开始位置
+                lastIndex = regexp.lastIndex;
+                //查找匹配的RegExp方法，返回一个数组（未匹配返回null）
+                //不断扫描整个字符串里面的内容
+                result = regexp.exec(source);
+
+                if(!result) 
+                    break;
+                //取出来的lastIndex和新生成的lastIndex去做一个比较，如果长度超了，就说明里面有不认识的字符
+                if(regexp.lastIndex - lastIndex > result[0].length)
+                    break;
+
+                //定义一个token的变量
+                let token = {
+                    type:null,
+                    value:null
+                } 
+                //0是整个的正则，从1开始到1234567的范围里，匹配到哪一种输入元素，就打印出对应dictionary
+                for(var i = 1; i <= dictionary.length; i++){
+                    if(result[i])
+                        //类型存下来
+                        token.type = dictionary[i - 1];
+                }
+                token.value = result[0];//值存下来
+                yield token;//使用yield返回一个序列
+            }
+            yield {
+                type:"EOF"
+            }
+        }
+
+        let source = [];
+
+        for(let token of tokenize("10 * 25 / 2")){
+            if(token.type !== "Whitespace" && token.type !== "LineTerminator")
+            source.push(token);
+        }
+
+        function Expression(token){}
+
+        function AdditiveExpression(source){
+            
+        }
+
+        //乘法表达式
+        function MultiplicativeExpression(source){
+            //数字,一个数字可以看成是（自身*1）就是MultiplicativeExpression结构了
+            if(source[0].type === "Number"){
+                let node = {
+                    type:"MultiplicativeExpression",
+                    children:[source[0]]
+                }
+                source[0] = node;
+                return MultiplicativeExpression(source);
+            }
+            //乘法
+            if(source[0].type === "MultiplicativeExpression" && source[1] && source[1].type === "*"){
+                let node = {
+                    type:"MultiplicativeExpression",
+                    operator:"*",
+                    children:[]
+                }
+                node.children.push(source.shift());//把source里面的第一个元素添加到node的末尾
+                node.children.push(source.shift());
+                node.children.push(source.shift());
+                source.unshift(node);//把node添加到source的开头
+                return MultiplicativeExpression(source);
+            }
+            //除法
+            if(source[0].type === "MultiplicativeExpression" && source[1] && source[1].type ==="/"){
+                let node = {
+                    type:"MultiplicativeExpression",
+                    operator:"/",
+                    children:[]
+                }
+                node.children.push(source.shift());
+                node.children.push(source.shift());
+                node.children.push(source.shift());
+                source.unshift(node);
+                return MultiplicativeExpression(source);
+            }
+            //递归结束的条件就是source[0].type === "MulitiplicativeExpression"，然后后面没有乘号或者除号
+            if(source[0].type === "MultiplicativeExpression"){
+                return source[0];
+            }
+                
+            return MultiplicativeExpression(source);//默认给一个递归自己，应该是永远不会执行的
+        }
+
+        console.log(MultiplicativeExpression(source));
+    </script>
+</html>
