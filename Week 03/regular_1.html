@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>regular expression</title>
+        <style>
+           
+        </style>
+    </head>
+    <body>
+        
+    </body>
+    <script>
+        //用或分隔开，每次匹配一个分支（数字）（空格\t）（换行符\r \n）(加减乘除)
+        //圆括号里面内容表示捕获，圆括号里面的内容也会被匹配出来
+        var regexp = /([0-9\.]+)|([ \t]+)|([\r\n]+)|(\*)|(\/)|(\+)|(\-)/g;
+        
+        var dictionary = ["Number", "Whitespace", "LineTerminator", "*","/","+","-"];
+
+        function tokenize(source){
+            var result = null;
+            while(true){
+                //查找匹配的RegExp方法，返回一个数组（未匹配返回null）
+                //不断扫描整个字符串里面的内容
+                result = regexp.exec(source);
+
+                if(!result) break;
+                //0是整个的正则，从1开始到1234567的范围里，匹配到哪一种输入元素，就打印出对应dictionary
+                for(var i = 1; i <= dictionary.length; i++){
+                    if(result[i])
+                        console.log(dictionary[i - 1]);
+                }
+                console.log(result);
+            }
+        }
+
+        tokenize("1024 + 10 * 25");
+    </script>
+</html>
