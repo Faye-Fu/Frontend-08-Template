@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>wildcard</title>
+        <style>
+           
+        </style>
+    </head>
+    <body></body>
+    <script>
+        function find(source, pattern){
+            let startCount = 0;
+            //循环pattern串，找出里面有多少个*
+            for(let i = 0; i < pattern.length; i++){
+                if(pattern[i] === "*")
+                    startCount ++;
+            }
+            //处理没有*的情况，就是字符串和pattern串严格的一一匹配
+            if(startCount === 0){
+                for (let i = 0; i < pattern.length; i++) {
+                    //除了问号，问号是可以匹配任意字符的；其他的符号就直接过去，一个个比，不一样的话就是不匹配
+                    if(pattern[i] !== source[i] && pattern[i] !== "?")
+                        return false;
+                }
+                return;
+            }
+
+            let i = 0;//pattern的位置
+            let lastIndex = 0;//原字符串的source的位置
+
+            //逐个的循环，把第一个*之前的匹配过去
+            for (i = 0; pattern[i] !== "*"; i++) {
+                if(pattern[i] !== source[i] && pattern[i] !== "?")
+                    return false;
+            }
+
+            lastIndex = i;//更新现在源字符串的位置为上面匹配过的i位置
+
+            //循环每个*加模式串的位置；首先找到*，
+            for (let p = 0; p < startCount - 1; p++) {
+                i++;
+                let subPattern = "";//星号后面的格式 参数
+                while (pattern[i] !== "*") {
+                    subPattern += pattern[i];
+                    i++;
+                }
+                //把subPattern模式串里面的？替换成正则表达式的语法
+                let reg = new RegExp(subPattern.replace(/\?/g, "[\\s\\S]"), "g");//[\\s\\S]正则里面的任意字符，就是？的意思
+                reg.lastIndex = lastIndex;//把之前更新的lastIndex(上面匹配到的i位置)赋值给 正则的lastIndex（就是正则开始匹配的位置）
+
+                //console.log(reg.exec(source));
+                //没有匹配到，跳出
+                if(!reg.exec(source))
+                    return false;
+
+                lastIndex = reg.lastIndex;
+            }
+
+            //从source的尾部开始匹配，匹配最后一节（最后一个*后面的部分）
+            for(let j = 0; j <= source.length - lastIndex && pattern[pattern.length - j] !== "*"; j++){
+                if(pattern[pattern.length - j] !== source[source.length - j] && pattern[pattern.length - j] !== "?")
+                    return false;
+            }
+            return true;
+        }
+    </script>
+</html>
