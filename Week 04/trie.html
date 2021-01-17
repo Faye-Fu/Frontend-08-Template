@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>trie</title>
+        <style>
+           
+        </style>
+    </head>
+    <body></body>
+    <script>
+        //因为字符串会有大量的重复，ab和abc其实它是两个不同的字符串，所以ab后面我们要有一个截止符，用$符不太合适，
+        //因为字符串里可能含有$内容；为了防止出问题，用Symbol的不可重复的特点来防止
+        let $ = Symbol("$");
+        class Trie {
+            constructor(){
+                this.root = Object.create(null);//为了避免受到Object.prototype原型上面的污染
+            }
+            //把字符串插入字典树里面
+            insert(word){
+                //从root开始逐级的把字符串放进树的子树里面去
+                let node = this.root;
+                for(let c of word){
+                    //如果子树不存在，就先创建子树
+                    if(!node[c])
+                            node[c] = Object.create(null);
+                        node = node[c];//翻到对应的位置
+                }
+                //用一个$来表示截止
+                if(!($ in node))
+                        node[$] = 0;
+                    node[$] ++;
+            }
+            //访问树里面出现最多次数的字符串
+            most(){
+                let max = 0;
+                let maxWord = null;
+                //遍历整棵树
+                let visit = (node, word) => {
+                    if(node[$] && node[$] > max){
+                        max = node[$];//重复最多单词的数量
+                        maxWord = word;//记录下出现最多次数的单词
+                    }
+                    for(let p in node){
+                        visit(node[p], word + p);//在word上追加一个当前的树的名字
+                    }
+                }
+                visit(this.root, "");
+                console.log(maxWord, max);
+            }
+        }
+        
+        //产生一个随机的单词
+        function randomWord(length){
+                var s = "";
+                for(let i = 0; i < length; i++)
+                    s += String.fromCharCode(Math.random() * 26 + "a".charCodeAt(0));
+                return s;
+        }
+
+        let trie = new Trie();
+
+        for (let i = 0; i < 100000; i++) {
+                trie.insert(randomWord(4));
+        }
+    </script>
+</html>
