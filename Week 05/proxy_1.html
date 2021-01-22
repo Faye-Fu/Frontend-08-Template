@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>proxy</title>
+        <style>
+           
+        </style>
+    </head>
+    <body></body>
+    <script>
+        //这个object是一个不可observe的一个对象，是一个单纯的数据存储
+        let object = {
+            a: 1,
+            b: 2
+        }
+
+        let po = new Proxy(object, {
+            set(obj, prop, val){
+                console.log(obj, prop, val);
+            }
+        })
+    </script>
+</html>
