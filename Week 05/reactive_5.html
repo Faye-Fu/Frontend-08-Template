@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>proxy</title>
+        <style>
+           
+        </style>
+    </head>
+    <body></body>
+    <script>
+        //要把object作为一个key，让它去找到reactivities;所以改用map保存
+        let callbacks = new Map();
+        //每个对象去调用reactive的时候去加一个缓存
+        let reactivties = new Map();
+
+        let usedReactivties = [];//全局的usedReactivties变量
+
+        let object = {
+            a: {b: 3},
+            b: 2
+        }
+
+        let po = reactive(object);
+
+        effect(()=> {
+            console.log(po.a.b);
+        });
+
+        function effect(callback){
+            usedReactivties = [];//清空
+            callback();
+            console.log(usedReactivties);
+            //循环一下reactivity，每个reactivity是个二元组，0就是这个对象
+            for(let reactivity of usedReactivties){
+                //对象没有的情况下加进去
+                if(!callbacks.has(reactivity[0])){
+                    callbacks.set(reactivity[0], new Map());
+                }
+                //第二层是属性，没有话加进去
+                if(!callbacks.get(reactivity[0]).has(reactivity[1])){
+                    callbacks.get(reactivity[0]).set(reactivity[1], []);
+                }
+                //往callbacks里面添加callback
+                callbacks.get(reactivity[0]).get(reactivity[1]).push(callback);
+            }
+
+        }
+
+        function reactive(object){
+            //reactive是一个无状态的函数
+            //有了就直接获取
+            if(reactivties.has(object))
+                return reactivties.get(object);
+
+            let proxy = new Proxy(object, {
+                set(obj, prop, val){
+                    obj[prop] = val;
+                    //有对象有属性的时候循环
+                    if(callbacks.get(obj))
+                        if(callbacks.get(obj).get(prop))
+                            for(let callback of callbacks.get(obj).get(prop)){
+                                callback();
+                            }
+                    return obj[prop];
+                },
+                get(obj, prop){
+                    usedReactivties.push([obj, prop]);//往usedReactivties添加一对参数进去
+                    //当prop是个对象的时候
+                    if(typeof obj[prop] === "object")
+                        return reactive(obj[prop]);
+
+                    return obj[prop];
+                }
+            });
+            //保存
+            reactivties.set(object, proxy);
+
+            return proxy;
+        }
+    </script>
+</html>
