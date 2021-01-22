@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>proxy</title>
+        <style>
+           
+        </style>
+    </head>
+    <body></body>
+    <script>
+        let callbacks = [];//保存callback
+
+        let object = {
+            a: 1,
+            b: 2
+        }
+
+        let po = reactive(object);
+
+        effect(()=> {
+            console.log(po.a);
+        });
+
+        function effect(callback){
+            callbacks.push(callback);
+        }
+
+        function reactive(object){
+            return new Proxy(object, {
+                set(obj, prop, val){
+                    obj[prop] = val;
+                    //遍历callbacks
+                    for(let callback of callbacks){
+                        callback();
+                    }
+                    return obj[prop];
+                },
+                get(obj, prop){
+                    console.log(obj, prop);
+                    return obj[prop];
+                }
+            })
+        }
+    </script>
+</html>
