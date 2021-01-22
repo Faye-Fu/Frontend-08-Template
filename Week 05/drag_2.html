@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>drag</title>
+        <style>
+            #dragable {
+                display: inline-block;
+                width: 100px;
+                height: 100px;
+                background-color: pink;
+            }
+        </style>
+    </head>
+    <body>
+        <div id = "container">文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字 
+            文字 文字 文字 文字 文字 文字 文字 文字</div>
+        <div id="dragable"></div>
+    </body>
+    <script>
+        let dragable = document.getElementById("dragable");//获取元素
+
+        let baseX = 0, baseY = 0;//原始坐标
+
+        dragable.addEventListener("mousedown", function(event){
+            let startX = event.clientX, startY = event.clientY;
+
+            let up = event => {
+                baseX = baseX + event.clientX - startX;
+                baseY = baseY + event.clientY - startY;
+                document.removeEventListener("mousemove", move);
+                document.removeEventListener("mouseup", up);
+            }
+            let move = event => {
+                let range = getNearest(event.clientX, event.clientY);
+                range.insertNode(dragable);//在dragable范围内容之前插入节点
+            }
+            document.addEventListener("mousemove", move);
+            document.addEventListener("mouseup", up);
+        })
+
+        let ranges = [];
+
+        let container = document.getElementById("container");
+
+        //列出所有能插的空隙
+        for(let i = 0; i < container.childNodes[0].textContent.length; i++){
+            let range = document.createRange();
+            range.setStart(container.childNodes[0], i);//设置起始点的位置
+            range.setEnd(container.childNodes[0], i);//设置结束点的位置
+
+            console.log(range.getBoundingClientRect());//确定文本区域中选中的部分或光标的视窗坐标
+            ranges.push(range);
+        }
+
+        //找到离某一个点最近的range
+        function getNearest(x, y){
+            let min = Infinity;
+            let nearest = null;
+
+            for(let range of ranges){
+                //range是不会变的，但是BoundingClientRect是CSSOM，一旦页面发生变化，它就会发生变化
+                let rect = range.getBoundingClientRect();//确定文本区域中选中的部分或光标的视窗坐标
+                let distance = (rect.x - x) ** 2 + (rect.y - y) ** 2;//勾股定理
+                if(distance < min){
+                    nearest = range;
+                    min = distance;
+                }
+            }
+            return nearest;
+        }
+
+        document.addEventListener("selectstart", event => event.preventDefault());//去除选中效果
+    </script>
+</html>
