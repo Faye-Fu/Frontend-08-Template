@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>String to byte</title>
+        <style>
+           
+        </style>
+    </head>
+    <body></body>
+    <script>
+        // num1是1和0进行“按位与”操作后的返回值。1的二进制码简写为1，0的二进制码简写为0，根据上面的规则，第二个操作符数为0，结果是0
+        var num1 = 1 & 0;
+        console.log(num1); // 0 
+        // 第一个操作符数是字符串，按照前言里面的理论，对于非数值的操作符数，先使用Number()函数处理，结果返回NaN，NaN又会被当成0来处理。所以最终结果也是0
+        var num2 = 'string' & 1;
+        console.log(num2); // 0
+        // true是布尔类型值，同样使用Number()函数处理，处理后得到数值1，于是表达式就相当于“1 & 1” 进行位运算，当两个数值都为1的时候，结果返回1
+        var num3 = true & 1;
+        console.log(num3); // 1
+        // 23的二进制码是：...10111，5的二进制码是：...00101。然后每一位进行对齐处理，结合上面的规则，可以得出10111&00101的结果是：00101。00101就是5
+        var num6 = 23 & 5;
+        console.log(num6); // 5 
+        // 再加个例子：24的二进制码为...11000，7的二进制码为...00111，相同位置的两个数执行AND操作，结果发现结果是...00000。所以最终结果是0，你算对了吗？
+        var add1 = 24 & 7;
+        console.log(add1); // 0
+
+
+        //把一个string它代表的字节给它转换出来？用utf8对字符串进行编码
+        function str2utf8(str) {
+            encoder = new TextEncoder('utf8');
+            return encoder.encode(str);
+        }
+        // 将字符串格式化为UTF8编码的字节
+        function UTF8_Encoding(string){
+            var bytes = new Array();
+            var len, code;
+            len = string.length;
+            for (let i = 0; i < len; i++) {
+                code = string.charCodeAt(i);
+                if(code >= 0x010000 && code <= 0x10FFFF) {
+                    //十六进制010000~10FFFF，1048576
+					bytes.push(((code >> 18) & 0x07) | 0xF0);//（把code向右移动18位 & 111）| 11110000
+					bytes.push(((code >> 12) & 0x3F) | 0x80);//（把code向右移动12位 & 111111）| 10000000
+					bytes.push(((code >> 6) & 0x3F) | 0x80);//（把code向右移动6位 & 111111）| 10000000
+					bytes.push((code & 0x3F) | 0x80);//（code & 111111）| 10000000
+				} else if(code >= 0x000800 && code <= 0x00FFFF) {
+                    //十六进制000800~00FFFF，61440
+					bytes.push(((code >> 12) & 0x0F) | 0xE0);//（把code向右移动12位 & 1111）| 11100000
+					bytes.push(((code >> 6) & 0x3F) | 0x80);//（把code向右移动6位 & 111111）| 10000000
+					bytes.push((code & 0x3F) | 0x80);//（code & 111111）| 10000000
+				} else if(code >= 0x000080 && code <= 0x0007FF) {
+                    //十六进制000080~0007FF，1920
+					bytes.push(((code >> 6) & 0x1F) | 0xC0);//（把code向右移动6位 & 11111）| 11000000
+					bytes.push((code & 0x3F) | 0x80);//（code & 111111））| 10000000
+				} else {
+                    //十六进制000000~00007F,128个
+					bytes.push(code & 0xFF);//code & 255
+				}
+            }
+            return bytes;
+        }
+        //字符串转utf8编码
+        function EncodeUtf8(s1){
+            var s = escape(s1);
+            var sa = s.split("%");
+            var retV ="";
+            if(sa[0] != "")
+            {
+                retV = sa[0];
+            }
+            for(var i = 1; i < sa.length; i ++)
+            {
+                if(sa[i].substring(0,1) == "u")
+                {
+                    retV += Hex2Utf8(Str2Hex(sa[i].substring(1,5)));
+
+                }
+                else retV += "%" + sa[i];
+            }
+
+            return retV;
+        }
+        function Str2Hex(s)
+        {
+            var c = "";
+            var n;
+            var ss = "0123456789ABCDEF";
+            var digS = "";
+            for(var i = 0; i < s.length; i ++)
+            {
+                c = s.charAt(i);
+                n = ss.indexOf(c);
+                digS += Dec2Dig(eval(n));
+
+            }
+            //return value;
+            return digS;
+        }
+        function Dec2Dig(n1)
+        {
+            var s = "";
+            var n2 = 0;
+            for(var i = 0; i < 4; i++)
+            {
+                n2 = Math.pow(2,3 - i);
+                if(n1 >= n2)
+                {
+                    s += '1';
+                    n1 = n1 - n2;
+                }
+                else
+                s += '0';
+
+            }
+            return s;
+
+        }
+        function Dig2Dec(s)
+        {
+            var retV = 0;
+            if(s.length == 4)
+            {
+                for(var i = 0; i < 4; i ++)
+                {
+                    retV += eval(s.charAt(i)) * Math.pow(2, 3 - i);
+                }
+                return retV;
+            }
+            return -1;
+        }
+        function Hex2Utf8(s)
+        {
+            var retS = "";
+            var tempS = "";
+            var ss = "";
+            if(s.length == 16)
+            {
+                tempS = "1110" + s.substring(0, 4);
+                tempS += "10" + s.substring(4, 10);
+                tempS += "10" + s.substring(10,16);
+                var sss = "0123456789ABCDEF";
+                for(var i = 0; i < 3; i ++)
+                {
+                    retS += "%";
+                    ss = tempS.substring(i * 8, (eval(i)+1)*8);
+
+
+
+                    retS += sss.charAt(Dig2Dec(ss.substring(0,4)));
+                    retS += sss.charAt(Dig2Dec(ss.substring(4,8)));
+                }
+                return retS;
+            }
+            return "";
+        } 
+
+    </script>
+</html>
