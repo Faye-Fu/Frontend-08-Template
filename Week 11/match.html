@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>match</title>
+    </head>
+    <body>
+        <div id="id1" class="class1">
+            <div id='id2' class='class2 class3'>
+              <div id='id3' class='class4 class5 class6'>
+                  <div id="id4" class="class8"></div>
+              </div>
+            </div>
+        </div> 
+        <div class="class8"></div>
+    </body>
+    <script>
+        function match(selector, element) {
+            let selectorArr = selector.split(' ');//将选择器分层级
+            let parentArr = [];//用于保存分成简单选择器的分层集合
+            let selectorReg = /(\w+)|(\.\w+)|(\#\w+)/g;//标签选择器|类选择器|ID选择器
+            for(let i = 0; i < selectorArr.length; i++){
+                parentArr.push(selectorArr[i].match(selectorReg));
+            }
+
+            // let matched = true;
+            //从里层选择器向外层找,里层如果匹配了，就不需要在
+            for (let j = parentArr.length-1;j>=0;j--){
+                if(!currentMatch(parentArr[j], element)){
+                    return false;
+                    break;
+                }
+                element = element.parentNode;//父元素
+            }
+            return true;
+        }
+        //判断当前选择器和当前元素的id|class|tagName 是否匹配
+        function currentMatch(currSelector, currElement){
+            for(let i = 0; i<currSelector.length;i++){
+                //当前选择器是id选择器
+                if(currSelector[i].charAt(0) === '#'){
+                    //判断id的名称和id选择器的名称是否匹配
+                    if(currElement.id === currSelector[i].replace('#','')){
+                        return true;
+                    }
+                }else if(currSelector[i].charAt(0) === '.'){
+                    //当前选择器是class选择器
+                    //因为class可能有多个
+                    for(let j = 0;j<currElement.classList.length; j++){
+                        //判断class的名称和class选择器的名称是否匹配
+                        if(currElement.classList[j] === currSelector[i].replace('.','')){
+                            return true;
+                            break;
+                        }
+                    }
+                }else{
+                    //判断标签的名称和标签选择器是否匹配
+                    if(currElement.tagName.toLowerCase() === currSelector[i]){
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        
+        let res = match("#id1 #id2 .class4.class5", document.getElementById("id3"));
+        // console.log(document.getElementById("id4"));
+        console.log(res);
+    </script>
+</html>
+ 
